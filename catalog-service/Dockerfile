@@ -1,14 +1,25 @@
-# Use OpenJDK 17 as base image
-FROM openjdk:17-slim
+# Multi-stage Dockerfile
+# 1) Build the application with Maven (inside the container)
+# 2) Copy the resulting JAR into a smaller runtime image
 
-# Set working directory
+FROM maven:3.8.8-eclipse-temurin-17 AS builder
+WORKDIR /build
+
+# Copy only what we need to build (helps with Docker layer caching)
+COPY pom.xml ./
+COPY src ./src
+
+# Build the project (skip tests for faster image builds; CI can run tests separately)
+RUN mvn -B package -DskipTests
+
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Copy the JAR file
-COPY target/*.jar app.jar
+# Copy the assembled jar from the builder stage
+COPY --from=builder /build/target/*.jar app.jar
 
-# Expose port 8080
+# Expose application port
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Default command
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
