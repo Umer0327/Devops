@@ -52,7 +52,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./catalog-service        # 👈 FIXED
+        file: ./catalog-service/Dockerfile # 👈 FIXED
         push: ${{ github.ref == 'refs/heads/main' }}
         tags: |
           ghcr.io/${{ steps.meta.outputs.owner }}/catalog-service:latest
