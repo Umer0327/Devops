@@ -18,29 +18,30 @@ jobs:
         working-directory: ./user-service
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: './user-service/package-lock.json'
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './user-service/package-lock.json'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run tests
-      run: npm test
+      - name: Run tests
+        run: npm test
 
-    - name: Build and optionally push Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/amd64
-        tags: ${{ github.ref == 'refs/heads/main' && secrets.DOCKER_HUB_USERNAME && secrets.DOCKER_HUB_TOKEN ? format('{0}/user-service:latest,user-service:latest', secrets.DOCKER_HUB_USERNAME) : 'user-service:latest' }}
-        push: ${{ github.ref == 'refs/heads/main' && secrets.DOCKER_HUB_USERNAME && secrets.DOCKER_HUB_TOKEN }}
-      env:
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-        DOCKERHUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: Build and optionally push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./user-service
+          file: ./user-service/Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/user-service:latest
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
